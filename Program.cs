@@ -110,7 +110,7 @@ namespace Blogly
 
                 // Write sitemap file
                 string sitemapContent = String.Empty;
-                sitemapContent += "<?xml version=\"1.0\" encoding=\"UTF-\"?>" + Environment.NewLine;
+                sitemapContent += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + Environment.NewLine;
                 sitemapContent += "<urlset xlmns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">" + Environment.NewLine;
                 foreach (var post in localPosts) {
                     sitemapContent += "  <url>" + Environment.NewLine;
