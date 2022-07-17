@@ -33,6 +33,6 @@ postUri - does not contain file extension
 
 ### Styling Classes
 
-Text Code - text-code
+Inline Code - <span class="text-code">...</span>
 
-Text Link - text-link
+Text Link - <a class="text-link">....</a>
