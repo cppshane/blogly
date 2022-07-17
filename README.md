@@ -2,7 +2,7 @@
 
 ## Workflow
 - Open shaneduffy workspace
-- Run "Launch Workspace" in project (F5)
+- Run "Launch Workspace" in project (launch site, initialize API and MongoDB containers)
 - Open ~/Workspace/my-file.html in Vim in 1st Terminal, for editing
 - Open ~/Projects/Blogly in 2nd Terminal, for core commands
 
@@ -17,7 +17,7 @@ dotnet run -- workspace 3 ~/Workspace
 ### - new postUri workspaceDir routesPath title type
 Create new post in dev database, and create new empty file in workspace
 ```
-dotnet run -- new my-file ~/Workspace ~/Projects/shaneduffy-io/routes.txt "My File" blog "keyword1,keyword2,keyword3" "My description preview, is this"
+dotnet run -- new my-file ~/Workspace ~/Projects/shaneduffy/site/routes.txt "My File" blog "keyword1,keyword2,keyword3" "My description preview, is this"
 ```
 
 ### - migrate connectionString1 connectionString2
