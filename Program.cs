@@ -35,6 +35,7 @@ namespace Blogly
                 string type = args[5];     
                 string keywords = args[6];                   
                 string preview = args[7];
+                string image = args[8];
 
                 MongoClient dbClient = new MongoClient(connectionString);
                 var sourceCollection = dbClient.GetDatabase("shaneduffy_database").GetCollection<Post>("posts");
@@ -51,6 +52,7 @@ namespace Blogly
                 post.Title = title;
                 post.Date = DateTime.Today;
                 post.Type = type;
+                post.Image = image;
                 post.Keywords = keywords.Split(",").ToList();
                 post.Preview = preview;
 
