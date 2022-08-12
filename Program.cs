@@ -28,14 +28,20 @@ namespace Blogly
 
             if (primaryCommand == "new") {
                 string connectionString = "mongodb://shane:password@127.0.0.1:27017/shaneduffy_database?authSource=shaneduffy_database";
-                string uri = args[1];
+                string preview = args[1];
                 string workspaceDirectory = args[2];
                 string routesPath = args[3];
                 string title = args[4];
                 string type = args[5];     
-                string keywords = args[6];                   
-                string preview = args[7];
-                string image = args[8];
+                string keywords = args[6];    
+                string? uri = null;
+                string? image = null;
+                if (args.Length > 7) {               
+                    uri = args[7];
+                }
+                if (args.Length > 8) {
+                    image = args[8];
+                }
 
                 MongoClient dbClient = new MongoClient(connectionString);
                 var sourceCollection = dbClient.GetDatabase("shaneduffy_database").GetCollection<Post>("posts");
@@ -47,12 +53,16 @@ namespace Blogly
                 System.IO.File.Create(Path.Combine(workspaceDirectory, uri + ".html"));
                     
                 Post post = new Post();
-                post.Uri = uri;
+                if (uri != null) {
+                    post.Uri = uri;
+                }
                 post.SubId = i;
                 post.Title = title;
                 post.Date = DateTime.Today;
                 post.Type = type;
-                post.Image = image;
+                if (image != null) {
+                    post.Image = image;
+                }
                 post.Keywords = keywords.Split(",").ToList();
                 post.Preview = preview;
 
@@ -133,24 +143,24 @@ namespace Blogly
     public class Post { 
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
         [BsonElement("sub_id")]
-        public int SubId { get; set; }
+        public int? SubId { get; set; }
         [BsonElement("uri")]
-        public string Uri { get; set; }
+        public string? Uri { get; set; }
         [BsonElement("title")]
-        public string Title { get; set; }
+        public string? Title { get; set; }
         [BsonElement("type")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
         [BsonElement("image")]
-        public string Image { get; set; }
+        public string? Image { get; set; }
         [BsonElement("preview")]
-        public string Preview { get; set; }
+        public string? Preview { get; set; }
         [BsonElement("content")]
-        public string Content { get; set; }
+        public string? Content { get; set; }
         [BsonElement("date")]
         public DateTime Date { get; set; }
         [BsonElement("keywords")]
-        public List<string> Keywords { get; set; }
+        public List<string>? Keywords { get; set; }
     }
 }
