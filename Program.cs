@@ -111,7 +111,7 @@ namespace Blogly
                 // Write routes file
                 string routesContent = String.Empty;
                 foreach (var post in localPosts) {
-                    if (post.Type.Equals("blog")) {
+                    if (post.Type.Equals("blog") && post.Uri != null && post.Uri != "") {
                         routesContent += $"/blog/{post.Uri}";
                     } else if (post.Type.Equals("notes")) {
                         routesContent += $"/notes/{post.Uri}j";
