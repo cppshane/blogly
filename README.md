@@ -1,5 +1,7 @@
 # blogly
 
+(out of date)
+
 ## Workflow
 - Open shaneduffy workspace
 - Run "Launch Workspace" in project (launch site, initialize API and MongoDB containers)
