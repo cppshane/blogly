@@ -30,17 +30,13 @@ namespace Blogly
                 string connectionString = "mongodb://shane:password@127.0.0.1:27017/shaneduffy_database?authSource=shaneduffy_database";
                 string preview = args[1];
                 string workspaceDirectory = args[2];
-                string routesPath = args[3];
-                string title = args[4];
-                string type = args[5];     
-                string keywords = args[6];    
-                string? uri = null;
+                string title = args[3];
+                string type = args[4];     
+                string keywords = args[5];    
+                string uri = args[6];
                 string? image = null;
-                if (args.Length > 7) {               
-                    uri = args[7];
-                }
-                if (args.Length > 8) {
-                    image = args[8];
+                if (args.Length > 7) {
+                    image = args[7];
                 }
 
                 MongoClient dbClient = new MongoClient(connectionString);
@@ -53,28 +49,18 @@ namespace Blogly
                 System.IO.File.Create(Path.Combine(workspaceDirectory, uri + ".html"));
                     
                 Post post = new Post();
-                if (uri != null) {
-                    post.Uri = uri;
-                }
+                post.Uri = uri;
                 post.SubId = i;
                 post.Title = title;
                 post.Date = DateTime.Today;
                 post.Type = type;
+                post.Keywords = keywords.Split(",").ToList();
+                post.Preview = preview;
                 if (image != null) {
                     post.Image = image;
                 }
-                post.Keywords = keywords.Split(",").ToList();
-                post.Preview = preview;
 
                 Console.WriteLine(i);
-
-                using (StreamWriter sw = File.AppendText(routesPath)) {
-                    if (post.Type.Equals("blog")) {
-                        sw.WriteLine($"/blog/{uri}");
-                    } else if (post.Type.Equals("notes")) {
-                        sw.WriteLine($"/notes/{uri}j");
-                    }
-                }
 
                 sourceCollection.InsertOne(post);
             }
