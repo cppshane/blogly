@@ -28,16 +28,27 @@ namespace Blogly
 
             if (primaryCommand == "new") {
                 string connectionString = "mongodb://shane:password@127.0.0.1:27017/shaneduffy_database?authSource=shaneduffy_database";
-                string preview = args[1];
-                string workspaceDirectory = args[2];
-                string title = args[3];
-                string type = args[4];     
-                string keywords = args[5];    
-                string uri = args[6];
-                string? image = null;
-                if (args.Length > 7) {
-                    image = args[7];
-                }
+                
+                Console.Write("Enter Title: ");
+                string title = Console.ReadLine() ?? "";
+
+                Console.Write("Enter Uri: ");
+                string uri = Console.ReadLine() ?? "";
+
+                Console.Write("Enter Image or YouTube link (https://www.youtube.com/embed/my_code_here");
+                string? image = Console.ReadLine();
+
+                Console.Write("Enter Keywords (comma-separated): ");
+                string keywords = Console.ReadLine() ?? "";
+                
+                Console.Write("Type (blog or notes): ");
+                string type = Console.ReadLine() ?? "";
+
+                Console.Write("Enter Preview: ");
+                string preview = Console.ReadLine() ?? "";
+
+                Console.Write("Workspace Dir (default ~/Workspace): ");
+                string workspaceDirectory = Console.ReadLine() ?? "~/Workspace";
 
                 MongoClient dbClient = new MongoClient(connectionString);
                 var sourceCollection = dbClient.GetDatabase("shaneduffy_database").GetCollection<Post>("posts");
