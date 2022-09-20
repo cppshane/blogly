@@ -10,20 +10,29 @@ namespace Blogly
         {
             string primaryCommand = args[0];
 
-            if (primaryCommand == "workspace") {
+            if (primaryCommand == "listen") {
                 string connectionString = "mongodb://shane:password@127.0.0.1:27017/shaneduffy_database?authSource=shaneduffy_database";
                 int subId = Int32.Parse(args[1]);
                 string workspaceDirectory = args[2];
 
+                Console.WriteLine("Connecting to database...");
                 MongoClient dbClient = new MongoClient(connectionString);
                 var sourceCollection = dbClient.GetDatabase("shaneduffy_database").GetCollection<Post>("posts");
                 Post post = sourceCollection.Find(post => post.SubId.Equals(subId)).FirstOrDefault();
-                
-                string workspaceContent = File.ReadAllText(Path.Combine(workspaceDirectory, post.Uri + ".html"));
 
-                post.Content = workspaceContent;
-                sourceCollection.FindOneAndDelete(o => o.Id.Equals(post.Id));
-                sourceCollection.InsertOne(post);
+                Console.WriteLine("Listening...");
+                string previousContent = File.ReadAllText(Path.Combine(workspaceDirectory, post.Uri + ".html"));
+                while (true) {
+                    string newContent = File.ReadAllText(Path.Combine(workspaceDirectory, post.Uri + ".html"));
+                    if (newContent != previousContent) {
+                        Console.WriteLine("Changes detected!");
+                        post.Content = newContent;
+                        sourceCollection.FindOneAndDelete(o => o.Id.Equals(post.Id));
+                        sourceCollection.InsertOne(post);
+                    }
+
+                    Thread.Sleep(500);
+                }
             }
 
             if (primaryCommand == "new") {
