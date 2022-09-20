@@ -1,23 +1,21 @@
 # blogly
 
-(out of date)
-
 ## Workflow
-- Open shaneduffy workspace
-- Run "Launch Workspace" in project (launch site, initialize API and MongoDB containers)
-- Open ~/Workspace/my-file.html in Vim in 1st Terminal, for editing
-- Open ~/Projects/Blogly in 2nd Terminal, for core commands
+- Run shaneduffy.io API and Site docker-compose.dev.yml
+- Run blogly new
+- Run blogly listen
+- Open file created in Workspace and begin editing
 
 ## Commands
 
-### - workspace subId workspaceDir
-Move post HTML from workspaceDir to posts_dev
+### - listen subId workspaceDir
+Listen for changes to a specific file within the workspace
 ```
-dotnet run -- workspace 3 ~/Workspace
+dotnet run -- listen 3 ~/Workspace
 ```
 
-### - new postUri workspaceDir routesPath title type
-Create new post in dev database, and create new empty file in workspace
+### - new
+Creates new post in local dev db and creates file in workspace
 ```
 dotnet run -- new my-file ~/Workspace ~/Projects/shaneduffy/site/routes.txt "My File" blog "keyword1,keyword2,keyword3" "My description preview, is this"
 ```
