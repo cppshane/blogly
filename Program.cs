@@ -29,6 +29,7 @@ namespace Blogly
                         post.Content = newContent;
                         sourceCollection.FindOneAndDelete(o => o.Id.Equals(post.Id));
                         sourceCollection.InsertOne(post);
+                        previousContent = newContent;
                     }
 
                     Thread.Sleep(500);
@@ -44,7 +45,7 @@ namespace Blogly
                 Console.Write("Enter Uri: ");
                 string uri = Console.ReadLine() ?? "";
 
-                Console.Write("Enter Image or YouTube link (https://www.youtube.com/embed/my_code_here");
+                Console.Write("Enter Image or YouTube link (https://www.youtube.com/embed/my_code_here): ");
                 string? image = Console.ReadLine();
 
                 Console.Write("Enter Keywords (comma-separated): ");
@@ -95,11 +96,13 @@ namespace Blogly
                 var localSourceCollection = localDatabase.GetCollection<Post>("posts");
                 var localPosts = localSourceCollection.Find(p => true).ToList<Post>();
 
-                // Write posts to remote database
+                // Add posts to remote database
                 MongoClient remoteClient = new MongoClient(remoteConnectionString);
                 var remoteDatabase = remoteClient.GetDatabase("shaneduffy_database");
                 var remoteSourceCollection = remoteDatabase.GetCollection<Post>("posts");
-                remoteSourceCollection.DeleteMany(p => true);
+                var remotePosts = remoteSourceCollection.Find(p => true).ToList<Post>();
+
+                var postsToAdd = localPosts.Where(l => !remotePosts.Select(r => r.Id).Contains(l.Id));
                 remoteSourceCollection.InsertMany(localPosts);
             }
 
