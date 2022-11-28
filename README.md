@@ -1,7 +1,10 @@
 # blogly
 
 ## Workflow
-- Run shaneduffy.io API and Site docker-compose.dev.yml
+- Run docker-compose for shaneduffy.io API and Site folders
+```
+docker-compose -f docker-compose.dev.yml up --build
+```
 - Run blogly new
 - Run blogly listen
 - Open file created in Workspace and begin editing
