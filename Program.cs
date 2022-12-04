@@ -91,12 +91,14 @@ namespace Blogly
                 string localConnectionString = args[1];
                 string remoteConnectionString = args[2];
 
+                Console.WriteLine("Getting posts from source DB...");
                 // Get posts from local database
                 MongoClient localClient = new MongoClient(localConnectionString);
                 var localDatabase = localClient.GetDatabase("shaneduffy_database");
                 var localSourceCollection = localDatabase.GetCollection<Post>("posts");
                 var localPosts = localSourceCollection.Find(p => true).ToList<Post>();
 
+                Console.WriteLine("Sending to dest DB...");
                 // Add posts to remote database
                 MongoClient remoteClient = new MongoClient(remoteConnectionString);
                 var remoteDatabase = remoteClient.GetDatabase("shaneduffy_database");
@@ -104,7 +106,7 @@ namespace Blogly
                 var remotePosts = remoteSourceCollection.Find(p => true).ToList<Post>();
 
                 var postsToAdd = localPosts.Where(l => !remotePosts.Select(r => r.Id).Contains(l.Id));
-                remoteSourceCollection.InsertMany(localPosts);
+                remoteSourceCollection.InsertMany(postsToAdd);
             }
 
             if (primaryCommand == "generate") {
