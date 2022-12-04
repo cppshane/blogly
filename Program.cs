@@ -1,6 +1,7 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System.Diagnostics;
 
 namespace Blogly
 {
@@ -11,29 +12,7 @@ namespace Blogly
             string primaryCommand = args[0];
 
             if (primaryCommand == "listen") {
-                string connectionString = "mongodb://shane:password@127.0.0.1:27017/shaneduffy_database?authSource=shaneduffy_database";
-                int subId = Int32.Parse(args[1]);
-                string workspaceDirectory = args[2];
-
-                Console.WriteLine("Connecting to database...");
-                MongoClient dbClient = new MongoClient(connectionString);
-                var sourceCollection = dbClient.GetDatabase("shaneduffy_database").GetCollection<Post>("posts");
-                Post post = sourceCollection.Find(post => post.SubId.Equals(subId)).FirstOrDefault();
-
-                Console.WriteLine("Listening...");
-                string previousContent = File.ReadAllText(Path.Combine(workspaceDirectory, post.Uri + ".html"));
-                while (true) {
-                    string newContent = File.ReadAllText(Path.Combine(workspaceDirectory, post.Uri + ".html"));
-                    if (newContent != previousContent) {
-                        Console.WriteLine("Changes detected!");
-                        post.Content = newContent;
-                        sourceCollection.FindOneAndDelete(o => o.Id.Equals(post.Id));
-                        sourceCollection.InsertOne(post);
-                        previousContent = newContent;
-                    }
-
-                    Thread.Sleep(500);
-                }
+                StartListening(args[1], args[2]);
             }
 
             if (primaryCommand == "new") {
@@ -57,8 +36,11 @@ namespace Blogly
                 Console.Write("Enter Preview: ");
                 string preview = Console.ReadLine() ?? "";
 
-                Console.Write("Workspace Dir (default ~/Workspace): ");
-                string workspaceDirectory = Console.ReadLine() ?? "~/Workspace";
+                Console.Write("Workspace Dir (default /home/shane/workspace): ");
+                string workspaceDirectory = Console.ReadLine() ?? "/home/shane/workspace";
+                if (workspaceDirectory == String.Empty) {
+                    workspaceDirectory = "/home/shane/workspace";
+                }
 
                 MongoClient dbClient = new MongoClient(connectionString);
                 var sourceCollection = dbClient.GetDatabase("shaneduffy_database").GetCollection<Post>("posts");
@@ -67,7 +49,25 @@ namespace Blogly
                     i++;
                 }
 
-                System.IO.File.Create(Path.Combine(workspaceDirectory, uri + ".html"));
+                Console.WriteLine(workspaceDirectory);
+                Console.WriteLine(uri);
+                
+                var path = Path.Combine(workspaceDirectory, uri + ".html");
+                Console.WriteLine(path);
+
+                System.IO.File.Create(path).Close();
+                Console.WriteLine($"Created file at: {path}");
+                Console.WriteLine($"Opening in VS Code...");
+
+                ProcessStartInfo startInfo = new ProcessStartInfo() { FileName = "/bin/bash" };
+                startInfo.RedirectStandardInput = true;
+                startInfo.RedirectStandardOutput = true;
+                startInfo.CreateNoWindow = true;
+                startInfo.UseShellExecute = false;
+                Process proc = new Process() { StartInfo = startInfo, };
+                proc.Start();
+
+                proc.StandardInput.WriteLine($"code {path}");
                     
                 Post post = new Post();
                 post.Uri = uri;
@@ -81,9 +81,10 @@ namespace Blogly
                     post.Image = image;
                 }
 
-                Console.WriteLine(i);
-
+                Console.WriteLine($"New SubId: {i}");
                 sourceCollection.InsertOne(post);
+
+                StartListening(i.ToString(), workspaceDirectory);
             }
 
             if (primaryCommand == "migrate") {
@@ -145,6 +146,44 @@ namespace Blogly
                 }
                 sitemapContent += "</urlset>";
                 File.WriteAllText(sitemapPath, sitemapContent);
+            }
+        }
+
+        private static void StartListening(string subIdString, string workspaceDirectory) {
+            string connectionString = "mongodb://shane:password@127.0.0.1:27017/shaneduffy_database?authSource=shaneduffy_database";
+            int subId = Int32.Parse(subIdString);
+
+            Console.WriteLine("Connecting to database...");
+            MongoClient dbClient = new MongoClient(connectionString);
+            var sourceCollection = dbClient.GetDatabase("shaneduffy_database").GetCollection<Post>("posts");
+            Post post = sourceCollection.Find(post => post.SubId.Equals(subId)).FirstOrDefault();
+
+            string previousContent = null;
+            
+            Console.WriteLine("Attempting to read file...");
+            while (previousContent == null) {
+                try {
+                    previousContent = File.ReadAllText(Path.Combine(workspaceDirectory, post.Uri + ".html"));
+                } catch (Exception e) { 
+                    Console.WriteLine(e.Message);
+                }
+                Thread.Sleep(500);
+            }
+
+            Console.WriteLine("Listening...");
+            while (true) {
+                try {
+                    string newContent = File.ReadAllText(Path.Combine(workspaceDirectory, post.Uri + ".html"));
+                    if (newContent != previousContent) {
+                        Console.WriteLine("Changes detected!");
+                        post.Content = newContent;
+                        sourceCollection.FindOneAndDelete(o => o.Id.Equals(post.Id));
+                        sourceCollection.InsertOne(post);
+                        previousContent = newContent;
+                    }
+                } catch (Exception e) {}
+
+                Thread.Sleep(500);
             }
         }
     }
