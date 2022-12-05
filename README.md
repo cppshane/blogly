@@ -1,14 +1,5 @@
 # blogly
 
-## Workflow
-- Run docker-compose for shaneduffy.io API and Site folders
-```
-docker-compose -f docker-compose.dev.yml up --build
-```
-- Run blogly new
-- Run blogly listen
-- Open file created in Workspace and begin editing
-
 ## Commands
 
 ### - listen subId workspaceDir
@@ -18,7 +9,7 @@ dotnet run -- listen 3 ~/Workspace
 ```
 
 ### - new
-Creates new post in local dev db and creates file in workspace.
+Creates new post in local dev db and creates file in workspace, opens the file in VSCode and then begins listening for changes to file.
 ```
 dotnet run -- new
 ```
