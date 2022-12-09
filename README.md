@@ -33,4 +33,4 @@ Full Code - `<pre><code>...</pre></code>`
 
 Text Link - `<a class="text-link">....</a>`
 
-Italic - `<span class="text-italic">...</span>
+Italic - `<span class="text-italic">...</span>`
