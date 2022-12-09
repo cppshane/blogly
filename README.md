@@ -32,3 +32,5 @@ Inline Code - `<span class="text-code">...</span>`
 Full Code - `<pre><code>...</pre></code>`
 
 Text Link - `<a class="text-link">....</a>`
+
+Italic - `<span class="text-italic">...</span>
