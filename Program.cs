@@ -172,7 +172,7 @@ namespace Blogly
                 Thread.Sleep(500);
             }
 
-            Console.WriteLine("Listening...");
+            Console.WriteLine("Listening for file changes...");
             while (true) {
                 try {
                     string newContent = File.ReadAllText(Path.Combine(workspaceDirectory, post.Uri + ".html"));
