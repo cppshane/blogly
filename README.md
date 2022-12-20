@@ -25,7 +25,8 @@ type - blog, notes
 
 postUri - does not contain file extension
 
-### Styling Classes
+### Styles/Elements
+`h1`, `h2`, `h3`, `h4`, `p`
 
 Inline Code - `<span class="text-code">...</span>`
 
