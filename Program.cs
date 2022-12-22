@@ -2,14 +2,18 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Diagnostics;
+using HtmlAgilityPack;
+using System.Net;
+using Newtonsoft;
+using Newtonsoft.Json;
 
 namespace Blogly
 {
     class Program
     {
+
         static void Main(string[] args)
-        {
-            string primaryCommand = args[0];
+        {string primaryCommand = args[0];
 
             if (primaryCommand == "listen") {
                 StartListening(args[1], args[2]);
@@ -109,6 +113,24 @@ namespace Blogly
                 remoteSourceCollection.InsertMany(postsToAdd);
             }
 
+            if (primaryCommand == "crosspost") {
+                string subIdString = args[1];
+                string workspaceDirectory = args[2];
+
+                string connectionString = "mongodb://shane:password@127.0.0.1:27017/shaneduffy_database?authSource=shaneduffy_database";
+                int subId = Int32.Parse(subIdString);
+
+                Console.WriteLine("Connecting to database...");
+                MongoClient dbClient = new MongoClient(connectionString);
+                var sourceCollection = dbClient.GetDatabase("shaneduffy_database").GetCollection<Post>("posts");
+                Post post = sourceCollection.Find(post => post.SubId.Equals(subId)).FirstOrDefault();
+
+                if (post != null) {
+                    var htmlFilePath = Path.Combine(workspaceDirectory, post.Uri + ".html");
+                    
+                }
+            }
+
             if (primaryCommand == "generate") {
                 string connectionString = args[1];
                 string routesPath = args[2];
@@ -151,6 +173,26 @@ namespace Blogly
             }
         }
 
+        private static async void CreateMediumPost(string mediumUserId, string title, string markdownContent, List<string> tags, string canonUri) {
+            var httpClient = new HttpClient();
+            
+            var result = await httpClient.PostAsync("https://api.medium.com/v1/users/" + mediumUserId + "/posts", new StringContent(JsonConvert.SerializeObject(new {
+                Title = title,
+                ContentFormat = "markdown",
+                Content = markdownContent,
+                Tags = tags,
+                CanonicalUrl = canonUri,
+                PublishStatus = "public",
+                NotifyFollowers = true
+            })));
+
+            if (result.IsSuccessStatusCode) {
+                Console.WriteLine("Successfully uploaded to Medium");
+            } else {
+                Console.WriteLine("Failed to upload to Medium. Response Status Code: " + result.StatusCode + ", Response Message: " + result.Content.ToString());
+            }
+        }
+
         private static void StartListening(string subIdString, string workspaceDirectory) {
             string connectionString = "mongodb://shane:password@127.0.0.1:27017/shaneduffy_database?authSource=shaneduffy_database";
             int subId = Int32.Parse(subIdString);
@@ -187,6 +229,80 @@ namespace Blogly
 
                 Thread.Sleep(500);
             }
+        }
+
+        private static string GetMarkdown(string htmlFilePath, string previewText, string video, MarkdownType type) {
+            HtmlDocument document = new HtmlDocument();
+            document.LoadHtml(File.ReadAllText(htmlFilePath));
+            
+            string markdown = String.Empty;
+
+            // Add preview
+            markdown += ">" + previewText;
+
+            // Add video
+            if (video != null) {
+                if (type == MarkdownType.Dev) {
+                    markdown += "{% embed " + video + " %}" + Environment.NewLine;
+                } else if (type == MarkdownType.Hashnode) {
+                    markdown += "%[" + video + "]" + Environment.NewLine;
+                } else if (type == MarkdownType.Medium) {
+                    markdown += "<iframe src=\"" + video + "\" allowfullscreen></iframe>" + Environment.NewLine;
+                }
+            }
+
+            // Add content
+            var nodes = document.DocumentNode.ChildNodes;
+            foreach (var node in nodes) {
+                if (node.Name == "p"
+                || node.Name == "h1"
+                || node.Name == "h2"
+                || node.Name == "h3"
+                || node.Name == "h4") {
+                    var innerNodes = node.ChildNodes;
+
+                    if (node.Name == "h1") {
+                        markdown += "#";
+                    } else if (node.Name == "h2") {
+                        markdown += "##";
+                    } else if (node.Name == "h3") {
+                        markdown += "###";
+                    } else if (node.Name == "h4") {
+                        markdown += "####";
+                    }
+
+                    foreach (var innerNode in innerNodes) {
+                        if (innerNode.Name == "#text") {
+                            markdown += innerNode.InnerText;
+                        } else if (innerNode.Name == "a") {
+                            markdown += $"[{innerNode.InnerText}]({innerNode.Attributes["href"].Value})";
+                        } else if (innerNode.Name == "span" && innerNode.HasClass("text-italic")) {
+                            markdown += $"*{innerNode.InnerText}*";
+                        } else if (innerNode.Name == "span" && innerNode.HasClass("text-code")) {
+                            markdown += $"`{innerNode.InnerText}`";
+                        }
+                    }
+                } else if (node.Name == "pre" && node.FirstChild.Name == "code") { // <pre><code>
+                    var codelang = node.FirstChild.Attributes["codelang"]?.Value ?? String.Empty;
+                    markdown += "```" + codelang + Environment.NewLine;
+                    markdown += WebUtility.HtmlDecode(node.FirstChild.InnerText) + Environment.NewLine;
+                    markdown += "```";
+                } else if (node.Name == "img") { // <img>
+                    markdown += $"![{node.Attributes["alt"]?.Value ?? String.Empty}]({node.Attributes["src"].Value})";
+                } else if (node.Name == "a" && node.FirstChild.Name == "img") { // <a><img>
+                    markdown += $"![{node.FirstChild.Attributes["alt"]?.Value ?? String.Empty}]({node.FirstChild.Attributes["src"].Value})";
+                }
+
+                markdown += Environment.NewLine;
+            }
+
+            return markdown;
+        }
+
+        private enum MarkdownType {
+            Dev,
+            Hashnode,
+            Medium
         }
     }
 
