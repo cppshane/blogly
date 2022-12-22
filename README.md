@@ -25,7 +25,8 @@ type - blog, notes
 
 postUri - does not contain file extension
 
-### Styling Classes
+### Styles/Elements
+`h1`, `h2`, `h3`, `h4`, `p`
 
 Inline Code - `<span class="text-code">...</span>`
 
@@ -34,3 +35,9 @@ Full Code - `<pre><code>...</pre></code>`
 Text Link - `<a class="text-link">....</a>`
 
 Italic - `<span class="text-italic">...</span>`
+
+### Code Highlighting
+The value in `codelang` attribute will be forwarded to the Markdown translation.
+```
+<pre><code codelang="cs"></code></pre>
+```
