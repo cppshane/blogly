@@ -4,65 +4,83 @@ using MongoDB.Bson.Serialization.Attributes;
 using System.Diagnostics;
 using HtmlAgilityPack;
 using System.Net;
-using Newtonsoft;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace Blogly
 {
     class Program
     {
-
-        static void Main(string[] args)
-        {string primaryCommand = args[0];
+        static async Task Main(string[] args)
+        {
+            string primaryCommand = args[0];
 
             if (primaryCommand == "listen") {
-                StartListening(args[1], args[2]);
-            }
+                string workspaceDir = "/home/shane/workspace";
+                if (args.Length >= 3) {
+                    workspaceDir = args[2];
+                }
 
-            if (primaryCommand == "new") {
+                StartListening(args[1], workspaceDir);
+            } else if (primaryCommand == "new") {
                 string connectionString = "mongodb://shane:password@127.0.0.1:27017/shaneduffy_database?authSource=shaneduffy_database";
                 
-                Console.Write("Enter Title: ");
+                // Title
+                Console.Write("Enter Title (e.g. This Is My Post): ");
                 string title = Console.ReadLine() ?? "";
 
-                Console.Write("Enter Uri: ");
+                // Uri
+                Console.Write("Enter Uri (e.g. this-is-my-post): ");
                 string uri = Console.ReadLine() ?? "";
 
-                Console.Write("Enter Image or YouTube link (https://www.youtube.com/embed/my_code_here): ");
+                // Image Uri
+                Console.Write("Enter Image Uri (Not necessary):");
                 string? image = Console.ReadLine();
 
+                // Video Uri
+                Console.Write("Enter Video Uri (format https://www.youtube.com/embed/my_code_here): ");
+                string? video = Console.ReadLine();
+
+                // Keywords
                 Console.Write("Enter Keywords (comma-separated): ");
                 string keywords = Console.ReadLine() ?? "";
                 
-                Console.Write("Type (blog or notes): ");
+                // Post Type
+                Console.Write("Type (blog or note, default blog): ");
                 string type = Console.ReadLine() ?? "";
+                if (type == String.Empty) {
+                    type = "blog";
+                }
 
+                // Preview
                 Console.Write("Enter Preview: ");
                 string preview = Console.ReadLine() ?? "";
 
+                // Workspace Path
                 Console.Write("Workspace Dir (default /home/shane/workspace): ");
                 string workspaceDirectory = Console.ReadLine() ?? "/home/shane/workspace";
                 if (workspaceDirectory == String.Empty) {
                     workspaceDirectory = "/home/shane/workspace";
                 }
 
+                // Connect to local database
                 MongoClient dbClient = new MongoClient(connectionString);
                 var sourceCollection = dbClient.GetDatabase("shaneduffy_database").GetCollection<Post>("posts");
                 int i = 0;
                 while (sourceCollection.Find(post => post.SubId.Equals(i)).FirstOrDefault() != null) {
                     i++;
                 }
-
                 Console.WriteLine(workspaceDirectory);
                 Console.WriteLine(uri);
                 
+                // Create workspace file
                 var path = Path.Combine(workspaceDirectory, uri + ".html");
                 Console.WriteLine(path);
-
                 System.IO.File.Create(path).Close();
                 Console.WriteLine($"Created file at: {path}");
-                Console.WriteLine($"Opening in VS Code...");
 
+                // Open workspace file in VS Code
+                Console.WriteLine($"Opening in VS Code...");
                 ProcessStartInfo startInfo = new ProcessStartInfo() { FileName = "/bin/bash" };
                 startInfo.RedirectStandardInput = true;
                 startInfo.RedirectStandardOutput = true;
@@ -70,9 +88,9 @@ namespace Blogly
                 startInfo.UseShellExecute = false;
                 Process proc = new Process() { StartInfo = startInfo, };
                 proc.Start();
-
                 proc.StandardInput.WriteLine($"code {path}");
-                    
+                
+                // Create new post in local database
                 Post post = new Post();
                 post.Uri = uri;
                 post.SubId = i;
@@ -84,54 +102,36 @@ namespace Blogly
                 if (image != null) {
                     post.Image = image;
                 }
-
+                if (video != null) {
+                    post.Video = video;
+                }
                 Console.WriteLine($"New SubId: {i}");
                 sourceCollection.InsertOne(post);
 
+                // Start listening for changes
                 StartListening(i.ToString(), workspaceDirectory);
-            }
-
-            if (primaryCommand == "migrate") {
+            } else if (primaryCommand == "migrate") {
                 string localConnectionString = args[1];
                 string remoteConnectionString = args[2];
 
-                Console.WriteLine("Getting posts from source DB...");
                 // Get posts from local database
+                Console.WriteLine("Getting posts from source DB...");
                 MongoClient localClient = new MongoClient(localConnectionString);
                 var localDatabase = localClient.GetDatabase("shaneduffy_database");
                 var localSourceCollection = localDatabase.GetCollection<Post>("posts");
                 var localPosts = localSourceCollection.Find(p => true).ToList<Post>();
 
-                Console.WriteLine("Sending to dest DB...");
                 // Add posts to remote database
+                Console.WriteLine("Sending to dest DB...");
                 MongoClient remoteClient = new MongoClient(remoteConnectionString);
                 var remoteDatabase = remoteClient.GetDatabase("shaneduffy_database");
                 var remoteSourceCollection = remoteDatabase.GetCollection<Post>("posts");
                 var remotePosts = remoteSourceCollection.Find(p => true).ToList<Post>();
 
+                // Add all posts that don't currently exist within remote database
                 var postsToAdd = localPosts.Where(l => !remotePosts.Select(r => r.Id).Contains(l.Id));
                 remoteSourceCollection.InsertMany(postsToAdd);
-            }
-
-            if (primaryCommand == "crosspost") {
-                string subIdString = args[1];
-                string workspaceDirectory = args[2];
-
-                string connectionString = "mongodb://shane:password@127.0.0.1:27017/shaneduffy_database?authSource=shaneduffy_database";
-                int subId = Int32.Parse(subIdString);
-
-                Console.WriteLine("Connecting to database...");
-                MongoClient dbClient = new MongoClient(connectionString);
-                var sourceCollection = dbClient.GetDatabase("shaneduffy_database").GetCollection<Post>("posts");
-                Post post = sourceCollection.Find(post => post.SubId.Equals(subId)).FirstOrDefault();
-
-                if (post != null) {
-                    var htmlFilePath = Path.Combine(workspaceDirectory, post.Uri + ".html");
-                    
-                }
-            }
-
-            if (primaryCommand == "generate") {
+            } else if (primaryCommand == "generate") {
                 string connectionString = args[1];
                 string routesPath = args[2];
                 string sitemapPath = args[3];
@@ -170,26 +170,118 @@ namespace Blogly
                 }
                 sitemapContent += "</urlset>";
                 File.WriteAllText(sitemapPath, sitemapContent);
+            }  else if (primaryCommand == "crosspost") {
+                string platform = args[1];
+                string subIdString = args[2];
+                string workspaceDirectory = args[3];
+
+                string connectionString = "mongodb://shane:password@127.0.0.1:27017/shaneduffy_database?authSource=shaneduffy_database";
+                int subId = Int32.Parse(subIdString);
+
+                Console.WriteLine("Connecting to database...");
+                MongoClient dbClient = new MongoClient(connectionString);
+                var sourceCollection = dbClient.GetDatabase("shaneduffy_database").GetCollection<Post>("posts");
+                Post post = sourceCollection.Find(post => post.SubId.Equals(subId)).FirstOrDefault();
+
+                if (post == null) {
+                    Console.WriteLine("Post not found");
+                    return;
+                }
+
+                if (post.Title == null || post.Preview == null || post.Uri == null) {
+                    Console.WriteLine("Post has fields that should not be null.");
+                    return;
+                }
+
+                string canonUri = "https://shaneduffy.io/blog/" + post.Uri;
+                var htmlFilePath = Path.Combine(workspaceDirectory, post.Uri + ".html");
+                
+                if (platform == "medium") {
+                    string mediumUserId = args[4];
+                    string mediumToken = args[5];
+
+                    var mediumMarkdown = GetMarkdown(htmlFilePath.ToString(), post.Preview, post.Title, post.Video, MarkdownType.Medium);
+                    await CreateMediumPost(mediumUserId, mediumToken, post.Title, mediumMarkdown, post.Keywords, canonUri);
+                } else if (platform == "hashnode") {
+                    string publicationId = args[4];
+                    string hashnodeToken = args[5];
+
+                    var hashnodeMarkdown = GetMarkdown(htmlFilePath.ToString(), post.Preview, post.Title, post.Video, MarkdownType.Hashnode);
+                    await CreateHashnodePost(hashnodeToken, publicationId, post.Title, post.Uri, hashnodeMarkdown, post.Keywords, canonUri, post.Image);
+                } else if (platform == "dev") {
+                    string devToken = args[4];
+
+                    var devMarkdown = GetMarkdown(htmlFilePath.ToString(), post.Preview, post.Title, post.Video, MarkdownType.Dev);
+                    await CreateDevPost(devToken, post.Title, devMarkdown, post.Keywords, canonUri, post.Image);
+                }
+            } 
+        }
+
+        private static async Task CreateHashnodePost(string hashnodeToken, string publicationId, string title, string slug, string markdownContent, List<string> tags, string canonUri, string image) {
+            var httpClient = new HttpClient();  
+            httpClient.DefaultRequestHeaders.Add("Authorization", new List<string>(){ hashnodeToken });
+            
+            // ew graphql
+            var result = await httpClient.PostAsync("https://api.hashnode.com", new StringContent("mutation CreatePublicationStory {createPublicationStory(publicationId: \"" + publicationId + "\", input: { " + 
+            "title: \"" + title + "\", " + 
+            "slug: \"" + slug + "\", " + 
+            ((image != null) ? "coverImageURL: \"" + image + "\", " : String.Empty) + 
+            "IsRepublished: { originalArticleURL: \"" + canonUri + "\" }" +
+            "contentMarkdown: \"" + markdownContent + "\", " + 
+            "]}) {code,success,message}}"));
+
+            if (result.IsSuccessStatusCode) {
+                Console.WriteLine("Successfully uploaded to Hashnode. ADD TAGS on hashnode.");
+            } else {
+                Console.WriteLine("Failed to upload to Hashnode. Response Status Code: " + result.StatusCode + ", Response Message: " + result.Content.ToString());
             }
         }
 
-        private static async void CreateMediumPost(string mediumUserId, string title, string markdownContent, List<string> tags, string canonUri) {
+        private static async Task CreateMediumPost(string mediumUserId, string mediumToken, string title, string markdownContent, List<string> tags, string canonUri) {
             var httpClient = new HttpClient();
-            
-            var result = await httpClient.PostAsync("https://api.medium.com/v1/users/" + mediumUserId + "/posts", new StringContent(JsonConvert.SerializeObject(new {
-                Title = title,
-                ContentFormat = "markdown",
-                Content = markdownContent,
-                Tags = tags,
-                CanonicalUrl = canonUri,
-                PublishStatus = "public",
-                NotifyFollowers = true
-            })));
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", mediumToken);
 
+            var jsonString = JsonConvert.SerializeObject(new {
+                title = title,
+                contentFormat = "markdown",
+                content = markdownContent,
+                tags = tags,
+                canonicalUrl = canonUri,
+                publishStatus = "draft",
+                notifyFollowers = true
+            });
+            var body = new StringContent(jsonString, Encoding.UTF8, "application/json");
+            var result = await httpClient.PostAsync("https://api.medium.com/v1/users/" + mediumUserId + "/posts", body);
+;
             if (result.IsSuccessStatusCode) {
-                Console.WriteLine("Successfully uploaded to Medium");
+                Console.WriteLine("Successfully uploaded to Medium. DRAFT ONLY. Ensure code snippets are hhighlighted before publish.");
             } else {
                 Console.WriteLine("Failed to upload to Medium. Response Status Code: " + result.StatusCode + ", Response Message: " + result.Content.ToString());
+            }
+        }
+
+        private static async Task CreateDevPost(string devToken, string title, string markdownContent, List<string> tags, string canonUri, string image) {
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("api-key", devToken);
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Macintosh; Intel Mac OS X 13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36");
+
+            var jsonString = JsonConvert.SerializeObject(new {
+                article = new {
+                    title = title,
+                    body_markdown = markdownContent,
+                    tags = tags,
+                    canonical_url = canonUri,
+                    published = true,
+                    main_image = image
+                }
+            });
+            var body = new StringContent(jsonString, Encoding.UTF8, "application/json");
+            var result = await httpClient.PostAsync("https://dev.to/api/articles", body);
+
+            if (result.IsSuccessStatusCode) {
+                Console.WriteLine("Successfully uploaded to DEV.");
+            } else {
+                Console.WriteLine("Failed to upload to DEV. Response Status Code: " + result.StatusCode + ", Response Message: " + result.Content.ToString());
             }
         }
 
@@ -231,23 +323,27 @@ namespace Blogly
             }
         }
 
-        private static string GetMarkdown(string htmlFilePath, string previewText, string video, MarkdownType type) {
+        private static string GetMarkdown(string htmlFilePath, string previewText, string title, string video, MarkdownType type) {
             HtmlDocument document = new HtmlDocument();
             document.LoadHtml(File.ReadAllText(htmlFilePath));
             
             string markdown = String.Empty;
 
+            if (type == MarkdownType.Medium) {
+                markdown += "# " + title + Environment.NewLine;
+            }
+
             // Add preview
-            markdown += ">" + previewText;
+            markdown += ">" + previewText + Environment.NewLine;
 
             // Add video
             if (video != null) {
                 if (type == MarkdownType.Dev) {
-                    markdown += "{% embed " + video + " %}" + Environment.NewLine;
+                    markdown += "{% embed " + video + " %}" + Environment.NewLine + Environment.NewLine;
                 } else if (type == MarkdownType.Hashnode) {
-                    markdown += "%[" + video + "]" + Environment.NewLine;
+                    markdown += "%[" + video + "]" + Environment.NewLine + Environment.NewLine;
                 } else if (type == MarkdownType.Medium) {
-                    markdown += "<iframe src=\"" + video + "\" allowfullscreen></iframe>" + Environment.NewLine;
+                    markdown += "<iframe src=\"" + video + "\" allowfullscreen></iframe>" + Environment.NewLine + Environment.NewLine;
                 }
             }
 
@@ -262,13 +358,13 @@ namespace Blogly
                     var innerNodes = node.ChildNodes;
 
                     if (node.Name == "h1") {
-                        markdown += "#";
+                        markdown += "# ";
                     } else if (node.Name == "h2") {
-                        markdown += "##";
+                        markdown += "## ";
                     } else if (node.Name == "h3") {
-                        markdown += "###";
+                        markdown += "### ";
                     } else if (node.Name == "h4") {
-                        markdown += "####";
+                        markdown += "#### ";
                     }
 
                     foreach (var innerNode in innerNodes) {
@@ -320,6 +416,8 @@ namespace Blogly
         public string? Type { get; set; }
         [BsonElement("image")]
         public string? Image { get; set; }
+        [BsonElement("video")]
+        public string? Video { get; set; }
         [BsonElement("preview")]
         public string? Preview { get; set; }
         [BsonElement("content")]
