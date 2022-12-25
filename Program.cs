@@ -6,6 +6,7 @@ using HtmlAgilityPack;
 using System.Net;
 using Newtonsoft.Json;
 using System.Text;
+using System.Web;
 
 namespace Blogly
 {
@@ -219,16 +220,20 @@ namespace Blogly
 
         private static async Task CreateHashnodePost(string hashnodeToken, string publicationId, string title, string slug, string markdownContent, List<string> tags, string canonUri, string image) {
             var httpClient = new HttpClient();  
-            httpClient.DefaultRequestHeaders.Add("Authorization", new List<string>(){ hashnodeToken });
+            httpClient.DefaultRequestHeaders.Add("Authorization", hashnodeToken);
             
             // ew graphql
-            var result = await httpClient.PostAsync("https://api.hashnode.com", new StringContent("mutation CreatePublicationStory {createPublicationStory(publicationId: \"" + publicationId + "\", input: { " + 
-            "title: \"" + title + "\", " + 
-            "slug: \"" + slug + "\", " + 
-            ((image != null) ? "coverImageURL: \"" + image + "\", " : String.Empty) + 
-            "IsRepublished: { originalArticleURL: \"" + canonUri + "\" }" +
-            "contentMarkdown: \"" + markdownContent + "\", " + 
-            "]}) {code,success,message}}"));
+            var jsonString = JsonConvert.SerializeObject(new {
+                query = "mutation CreatePublicationStory {createPublicationStory(publicationId: \"" + publicationId + "\", input: { " + 
+                    "title: \"" + title + "\", " + 
+                    "slug: \"" + slug + "\", " + 
+                    ((image != null) ? "coverImageURL: \"" + image + "\", " : String.Empty) + 
+                    "isRepublished: { originalArticleURL: \"" + canonUri + "\" }," +
+                    "contentMarkdown: \"" +  HttpUtility.JavaScriptStringEncode(markdownContent) + "\", " + 
+                    "tags: []" +
+                    "}) {code,success,message}}"
+            });
+            var result = await httpClient.PostAsync("https://api.hashnode.com", new StringContent(jsonString, Encoding.UTF8, "application/json"));
 
             if (result.IsSuccessStatusCode) {
                 Console.WriteLine("Successfully uploaded to Hashnode. ADD TAGS on hashnode.");
