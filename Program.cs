@@ -334,7 +334,7 @@ namespace Blogly
             }
 
             // Add preview
-            markdown += ">" + previewText + Environment.NewLine;
+            markdown += ">" + previewText + Environment.NewLine + Environment.NewLine;
 
             // Add video
             if (video != null) {
