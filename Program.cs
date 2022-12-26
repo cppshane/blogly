@@ -227,7 +227,7 @@ namespace Blogly
                 query = "mutation CreatePublicationStory {createPublicationStory(publicationId: \"" + publicationId + "\", input: { " + 
                     "title: \"" + title + "\", " + 
                     "slug: \"" + slug + "\", " + 
-                    ((image != null) ? "coverImageURL: \"" + image + "\", " : String.Empty) + 
+                    ((image != null && image != String.Empty) ? "coverImageURL: \"" + image + "\", " : String.Empty) + 
                     "isRepublished: { originalArticleURL: \"" + canonUri + "\" }," +
                     "contentMarkdown: \"" +  HttpUtility.JavaScriptStringEncode(markdownContent) + "\", " + 
                     "tags: []" +
@@ -342,7 +342,7 @@ namespace Blogly
             markdown += ">" + previewText + Environment.NewLine + Environment.NewLine;
 
             // Add video
-            if (video != null) {
+            if (video != null && video != String.Empty) {
                 if (type == MarkdownType.Dev) {
                     markdown += "{% embed " + video + " %}" + Environment.NewLine + Environment.NewLine;
                 } else if (type == MarkdownType.Hashnode) {
