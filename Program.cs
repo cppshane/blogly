@@ -238,7 +238,7 @@ namespace Blogly
             if (result.IsSuccessStatusCode) {
                 Console.WriteLine("Successfully uploaded to Hashnode. ADD TAGS on hashnode.");
             } else {
-                Console.WriteLine("Failed to upload to Hashnode. Response Status Code: " + result.StatusCode + ", Response Message: " + result.Content.ToString());
+                Console.WriteLine("Failed to upload to Hashnode. Response Status Code: " + result.StatusCode + ", Response Message: " + (await result.Content.ReadAsStringAsync()));
             }
         }
 
@@ -259,9 +259,9 @@ namespace Blogly
             var result = await httpClient.PostAsync("https://api.medium.com/v1/users/" + mediumUserId + "/posts", body);
 ;
             if (result.IsSuccessStatusCode) {
-                Console.WriteLine("Successfully uploaded to Medium. DRAFT ONLY. Ensure code snippets are hhighlighted before publish.");
+                Console.WriteLine("Successfully uploaded to Medium. DRAFT ONLY. Ensure code snippets are highlighted before publish.");
             } else {
-                Console.WriteLine("Failed to upload to Medium. Response Status Code: " + result.StatusCode + ", Response Message: " + result.Content.ToString());
+                Console.WriteLine("Failed to upload to Medium. Response Status Code: " + result.StatusCode + ", Response Message: " + (await result.Content.ReadAsStringAsync()));
             }
         }
 
@@ -286,7 +286,7 @@ namespace Blogly
             if (result.IsSuccessStatusCode) {
                 Console.WriteLine("Successfully uploaded to DEV.");
             } else {
-                Console.WriteLine("Failed to upload to DEV. Response Status Code: " + result.StatusCode + ", Response Message: " + result.Content.ToString());
+                Console.WriteLine("Failed to upload to DEV. Response Status Code: " + result.StatusCode + ", Response Message: " + (await result.Content.ReadAsStringAsync()));
             }
         }
 
