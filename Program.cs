@@ -196,19 +196,22 @@ namespace Blogly
 
                 string canonUri = "https://shaneduffy.io/blog/" + post.Uri;
                 var htmlFilePath = Path.Combine(workspaceDirectory, post.Uri + ".html");
+
+                // Keyword limit 4 for every platform
+                var keywords = post.Keywords?.Take(4).ToList() ?? new List<string>();
                 
                 if (platform == "medium") {
                     string mediumUserId = args[4];
                     string mediumToken = args[5];
 
                     var mediumMarkdown = GetMarkdown(htmlFilePath.ToString(), post.Preview, post.Title, post.Video, MarkdownType.Medium);
-                    await CreateMediumPost(mediumUserId, mediumToken, post.Title, mediumMarkdown, post.Keywords, canonUri);
+                    await CreateMediumPost(mediumUserId, mediumToken, post.Title, mediumMarkdown, keywords, canonUri);
                 } else if (platform == "hashnode") {
                     string publicationId = args[4];
                     string hashnodeToken = args[5];
 
                     var hashnodeMarkdown = GetMarkdown(htmlFilePath.ToString(), post.Preview, post.Title, post.Video, MarkdownType.Hashnode);
-                    await CreateHashnodePost(hashnodeToken, publicationId, post.Title, post.Uri, hashnodeMarkdown, post.Keywords, canonUri, post.Image);
+                    await CreateHashnodePost(hashnodeToken, publicationId, post.Title, post.Uri, hashnodeMarkdown, keywords, canonUri, post.Image);
                 } else if (platform == "dev") {
                     string devToken = args[4];
 
