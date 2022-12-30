@@ -320,7 +320,11 @@ namespace Blogly
                     string newContent = File.ReadAllText(Path.Combine(workspaceDirectory, post.Uri + ".html"));
                     if (newContent != previousContent) {
                         Console.WriteLine("Changes detected!");
+                        
+                        // Get Post again in case any of the peripheral fields were manually updated during editing
+                        post = sourceCollection.Find(post => post.SubId.Equals(subId)).FirstOrDefault();
                         post.Content = newContent;
+
                         sourceCollection.FindOneAndDelete(o => o.Id.Equals(post.Id));
                         sourceCollection.InsertOne(post);
                         previousContent = newContent;
