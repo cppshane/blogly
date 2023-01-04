@@ -204,18 +204,18 @@ namespace Blogly
                     string mediumUserId = args[4];
                     string mediumToken = args[5];
 
-                    var mediumMarkdown = GetMarkdown(htmlFilePath.ToString(), post.Preview, post.Title, post.Video, MarkdownType.Medium);
+                    var mediumMarkdown = GetMarkdown(htmlFilePath.ToString(), post.Preview, post.Title, post.Image, post.Video, MarkdownType.Medium);
                     await CreateMediumPost(mediumUserId, mediumToken, post.Title, mediumMarkdown, keywords, canonUri);
                 } else if (platform == "hashnode") {
                     string publicationId = args[4];
                     string hashnodeToken = args[5];
 
-                    var hashnodeMarkdown = GetMarkdown(htmlFilePath.ToString(), post.Preview, post.Title, post.Video, MarkdownType.Hashnode);
+                    var hashnodeMarkdown = GetMarkdown(htmlFilePath.ToString(), post.Preview, post.Title, post.Image, post.Video, MarkdownType.Hashnode);
                     await CreateHashnodePost(hashnodeToken, publicationId, post.Title, post.Uri, hashnodeMarkdown, keywords, canonUri, post.Image);
                 } else if (platform == "dev") {
                     string devToken = args[4];
 
-                    var devMarkdown = GetMarkdown(htmlFilePath.ToString(), post.Preview, post.Title, post.Video, MarkdownType.Dev);
+                    var devMarkdown = GetMarkdown(htmlFilePath.ToString(), post.Preview, post.Title, post.Image, post.Video, MarkdownType.Dev);
                     await CreateDevPost(devToken, post.Title, devMarkdown, post.Keywords, canonUri, post.Image);
                 }
             } 
@@ -335,13 +335,16 @@ namespace Blogly
             }
         }
 
-        private static string GetMarkdown(string htmlFilePath, string previewText, string title, string video, MarkdownType type) {
+        private static string GetMarkdown(string htmlFilePath, string previewText, string title, string image, string video, MarkdownType type) {
             HtmlDocument document = new HtmlDocument();
             document.LoadHtml(File.ReadAllText(htmlFilePath));
             
             string markdown = String.Empty;
 
             if (type == MarkdownType.Medium) {
+                if (image != null && image != String.Empty) {
+                    markdown += $"![Title Image]({image})" + Environment.NewLine;
+                }
                 markdown += "# " + title + Environment.NewLine;
             }
 
