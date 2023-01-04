@@ -20,6 +20,12 @@ Adds all non-existing posts from one database to another.
 dotnet run -- migrate "mongodb://shane:password@172.17.0.1:27017/shaneduffy_database?authSource=shaneduffy_database" "mongodb://shane:password@143.198.140.108:27017/shaneduffy_database?authSource=shaneduffy_database"
 ```
 
+### - crosspost platform(medium, dev, hashnode) subId workspaceDir
+Migrates the post with the given subId to the specified platform.
+```
+dotnet run -- crosspost medium 13 /home/shane/workspace
+```
+
 ## Notes
 type - blog, notes
 
