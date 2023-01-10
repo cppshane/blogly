@@ -89,7 +89,7 @@ namespace Blogly
                 startInfo.UseShellExecute = false;
                 Process proc = new Process() { StartInfo = startInfo, };
                 proc.Start();
-                proc.StandardInput.WriteLine($"code {path}");
+                proc.StandardInput.WriteLine($"code {path} --new-window");
                 
                 // Create new post in local database
                 Post post = new Post();
