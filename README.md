@@ -17,7 +17,7 @@ dotnet run -- new
 ### - migrate connectionString1 connectionString2
 Adds all non-existing posts from one database to another.
 ```
-dotnet run -- migrate "mongodb://shane:password@172.17.0.1:27017/shaneduffy_database?authSource=shaneduffy_database" "mongodb://shane:password@143.198.140.108:27017/shaneduffy_database?authSource=shaneduffy_database"
+dotnet run -- migrate "mongodb://shane:password@127.0.0.1:27017/shaneduffy_database?authSource=shaneduffy_database" "mongodb://shane:password@143.198.140.108:27017/shaneduffy_database?authSource=shaneduffy_database"
 ```
 
 ### - crosspost platform(medium, dev, hashnode) subId workspaceDir
