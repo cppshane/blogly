@@ -1,5 +1,18 @@
 # blogly
 
+## Blog Flow
+
+1. Start [personal site](https://github.com/cppshane/shaneduffy) - (on personal site project directory) `docker compose up`
+2. Ensure it shows up properly at `localhost:4200`
+3. Import posts from server if necessary - `sudo bash blogly-import.sh`
+4. Create new post - `dotnet run -- new`
+5. Write post in workspace document created
+6. Migrate to server `sudo bash blogly-migrate.sh`
+7. Crosspost to sites `sudo bash crosspost.sh <postId>`
+8. Verify posts on crosspost sites (Finish Medium publication, manually add image captions, review for typos, etc.)
+9. Regenerate SSR pages + routes file - (on server) `bash blogly-generate.sh`, `bash backup-mongo.sh`
+10. Backup on server - `bash backup-mongo.sh`
+
 ## Commands
 
 ### - listen subId workspaceDir
