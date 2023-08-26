@@ -10,7 +10,7 @@
 6. Migrate to server > `sudo bash blogly-migrate.sh`
 7. Crosspost to sites > `sudo bash crosspost.sh <postId>`
 8. Verify posts on crosspost sites (Finish Medium publication, manually add image captions, review for typos, etc.)
-9. Regenerate SSR pages + routes file > (on server) `bash blogly-generate.sh`
+9. Regenerate SSR pages + routes file > (on server) `bash blogly-generate.sh`, `bash deploy-shaneduffy.sh`
 10. Backup to G-Drive > (on server) `bash backup-mongo.sh`
 
 ## Commands
