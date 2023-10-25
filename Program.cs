@@ -43,8 +43,9 @@ namespace Blogly
                 string? video = Console.ReadLine();
 
                 // Keywords
-                Console.Write("Enter Keywords (comma-separated): ");
+                Console.Write("Enter Keywords (comma-separated, special keywords are here and should by typed as seen, spaces etc will be handled appropriately as per platform requirements - vscode): ");
                 string keywords = Console.ReadLine() ?? "";
+                keywords.Replace("vscode", "vs code");
                 
                 // Post Type
                 Console.Write("Type (blog or note, default blog): ");
@@ -205,7 +206,7 @@ namespace Blogly
                     string mediumToken = args[5];
 
                     var mediumMarkdown = GetMarkdown(htmlFilePath.ToString(), post.Preview, post.Title, post.Image, post.Video, MarkdownType.Medium);
-                    await CreateMediumPost(mediumUserId, mediumToken, post.Title, mediumMarkdown, keywords, canonUri);
+                    await CreateMediumPost(mediumUserId, mediumToken, post.Title, mediumMarkdown, keywords.Select(o => o.Replace("vs code", "vscode")).ToList(), canonUri);
                 } else if (platform == "hashnode") {
                     string publicationId = args[4];
                     string hashnodeToken = args[5];
