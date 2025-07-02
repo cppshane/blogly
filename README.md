@@ -1,5 +1,7 @@
 # blogly
 
+Write blog post in HTML, output to Markdown and publish to main site + 3rd party sites
+
 ## Blog Flow
 
 1. Start [personal site](https://github.com/cppshane/shaneduffy) > (on personal site project directory) `docker compose up`
