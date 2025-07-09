@@ -58,6 +58,8 @@ Text Link - `<a class="text-link">....</a>`
 
 Italic - `<span class="text-italic">...</span>`
 
+Unordered List - `<ul><li>...</li><li>...</li></ul>`
+
 ### Code Highlighting
 The value in `codelang` attribute will be forwarded to the Markdown translation.
 ```

@@ -383,15 +383,19 @@ namespace Blogly
                         markdown += "#### ";
                     }
 
-                    foreach (var innerNode in innerNodes) {
-                        if (innerNode.Name == "#text") {
-                            markdown += innerNode.InnerText;
-                        } else if (innerNode.Name == "a") {
-                            markdown += $"[{innerNode.InnerText}]({innerNode.Attributes["href"].Value})";
-                        } else if (innerNode.Name == "span" && innerNode.HasClass("text-italic")) {
-                            markdown += $"*{innerNode.InnerText}*";
-                        } else if (innerNode.Name == "span" && innerNode.HasClass("text-code")) {
-                            markdown += $"`{innerNode.InnerText}`";
+                    markdown += ProcessChildNodes(innerNodes);
+                } else if (node.Name == "ul") { // <ul>
+                    foreach (var liNode in node.ChildNodes) {
+                        if (liNode.Name == "li") {
+                            markdown += "* " + ProcessChildNodes(liNode.ChildNodes) + Environment.NewLine;
+                        }
+                    }
+                } else if (node.Name == "ol") { // <ol>
+                    int itemNumber = 1;
+                    foreach (var liNode in node.ChildNodes) {
+                        if (liNode.Name == "li") {
+                            markdown += $"{itemNumber}. " + ProcessChildNodes(liNode.ChildNodes) + Environment.NewLine;
+                            itemNumber++;
                         }
                     }
                 } else if (node.Name == "pre" && node.FirstChild.Name == "code") { // <pre><code>
@@ -410,6 +414,22 @@ namespace Blogly
 
             return markdown;
         }
+
+        private static string ProcessChildNodes(HtmlNodeCollection childNodes) {
+            string result = String.Empty;
+            foreach (var innerNode in childNodes) {
+                if (innerNode.Name == "#text") {
+                    result += innerNode.InnerText;
+                } else if (innerNode.Name == "a") {
+                    result += $"[{innerNode.InnerText}]({innerNode.Attributes["href"].Value})";
+                } else if (innerNode.Name == "span" && innerNode.HasClass("text-italic")) {
+                    result += $"*{innerNode.InnerText}*";
+                } else if (innerNode.Name == "span" && innerNode.HasClass("text-code")) {
+                    result += $"`{innerNode.InnerText}`";
+                }
+            }
+            return result;
+        } 
 
         private enum MarkdownType {
             Dev,
