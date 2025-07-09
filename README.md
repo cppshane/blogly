@@ -60,6 +60,8 @@ Italic - `<span class="text-italic">...</span>`
 
 Unordered List - `<ul><li>...</li><li>...</li></ul>`
 
+Image - `<img src="..." alt="...">`
+
 ### Code Highlighting
 The value in `codelang` attribute will be forwarded to the Markdown translation.
 ```
