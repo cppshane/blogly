@@ -426,6 +426,8 @@ namespace Blogly
                     result += $"*{innerNode.InnerText}*";
                 } else if (innerNode.Name == "span" && innerNode.HasClass("text-code")) {
                     result += $"`{innerNode.InnerText}`";
+                } else if (innerNode.Name == "strong") {
+                    result += $"**{innerNode.InnerText}**";
                 }
             }
             return result;
