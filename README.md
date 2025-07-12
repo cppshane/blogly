@@ -56,7 +56,7 @@ Full Code - `<pre><code>...</pre></code>`
 
 Text Link - `<a class="text-link">....</a>`
 
-Italic - `<span class="text-italic">...</span>`
+Italic - `<span class="text-italic" target="_blank">...</span>`
 
 Unordered List - `<ul><li>...</li><li>...</li></ul>`
 
